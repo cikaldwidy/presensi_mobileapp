@@ -33,7 +33,8 @@ class CustomButton extends StatelessWidget {
         label: Text(label),
         style: FilledButton.styleFrom(
           backgroundColor: backgroundColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );

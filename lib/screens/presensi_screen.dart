@@ -193,6 +193,9 @@ class _PresensiScreenState extends State<PresensiScreen> {
           builder: (context, snapshot) {
             final data = snapshot.data ?? <String, dynamic>{};
             final shift = data['shift'] as Map<String, dynamic>? ?? {};
+            final user = data['user'] as Map<String, dynamic>? ?? {};
+            final status =
+                data['status_presensi'] as Map<String, dynamic>? ?? {};
             final activeShift = shift['active'] as Map<String, dynamic>?;
             final scheduledShift = shift['scheduled'] as Map<String, dynamic>?;
             final shiftData = activeShift ?? scheduledShift;
@@ -200,6 +203,13 @@ class _PresensiScreenState extends State<PresensiScreen> {
             final presensi = presensiJson is Map<String, dynamic>
                 ? PresensiModel.fromJson(presensiJson)
                 : null;
+            final availabilityMessage = snapshot.hasData
+                ? _attendanceAvailabilityMessage(user, status)
+                : null;
+            final canSubmitAttendance = snapshot.hasData &&
+                availabilityMessage == null &&
+                _faceImage != null &&
+                _faceCount > 0;
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(20, 30, 20, 24),
@@ -224,9 +234,13 @@ class _PresensiScreenState extends State<PresensiScreen> {
                 _VerifyButton(
                   isMasuk: _isMasuk,
                   isLoading: _isLoading,
-                  canSubmit: _faceImage != null && _faceCount > 0,
+                  canSubmit: canSubmitAttendance,
                   onPressed: _submit,
                 ),
+                if (availabilityMessage != null) ...[
+                  const SizedBox(height: 14),
+                  _MessagePanel(message: availabilityMessage),
+                ],
                 if (_message != null) ...[
                   const SizedBox(height: 14),
                   _MessagePanel(message: _message!),
@@ -264,6 +278,30 @@ class _PresensiScreenState extends State<PresensiScreen> {
     ];
 
     return '${value.day} ${months[value.month - 1]} ${value.year}';
+  }
+
+  String? _attendanceAvailabilityMessage(
+    Map<String, dynamic> user,
+    Map<String, dynamic> status,
+  ) {
+    final hasFaceEnrollment = user['has_face_enrollment'] as bool? ?? false;
+    final hasApprovedLeave = status['has_approved_leave'] as bool? ?? false;
+    final activeShiftAvailable =
+        status['active_shift_available'] as bool? ?? false;
+
+    if (!hasFaceEnrollment) {
+      return 'Wajah belum terdaftar. Selesaikan enrollment melalui web terlebih dulu.';
+    }
+
+    if (hasApprovedLeave) {
+      return 'Kamu memiliki izin yang sudah disetujui pada tanggal presensi ini.';
+    }
+
+    if (!activeShiftAvailable) {
+      return 'Shift belum aktif atau kamu berada di luar jam presensi.';
+    }
+
+    return null;
   }
 }
 
