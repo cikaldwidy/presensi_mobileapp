@@ -14,6 +14,23 @@ import '../screens/shift_swap_screen.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 
+class _AppColors {
+  static const background = Color(0xFFF4F8F8);
+  static const surface = Colors.white;
+  static const primary = Color(0xFF087B68);
+  static const primaryDark = Color(0xFF075E59);
+  static const primarySoft = Color(0xFFE8FAF4);
+  static const ink = Color(0xFF243746);
+  static const muted = Color(0xFF728294);
+  static const line = Color(0xFFE2ECEB);
+  static const warning = Color(0xFFB7791F);
+  static const warningSoft = Color(0xFFFFF5DB);
+  static const blue = Color(0xFF2B6CB0);
+  static const blueSoft = Color(0xFFE8F1FF);
+  static const red = Color(0xFFE05252);
+  static const redSoft = Color(0xFFFFE9E9);
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
@@ -144,91 +161,103 @@ class _DashboardTabState extends State<_DashboardTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFDFFBFA),
+      backgroundColor: _AppColors.background,
       body: SafeArea(
         bottom: false,
-        child: RefreshIndicator(
-          onRefresh: () async => widget.onRefresh(),
-          child: FutureBuilder<Map<String, dynamic>>(
-            future: widget.future,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
+        child: Stack(
+          children: [
+            const _DashboardBackground(),
+            RefreshIndicator(
+              color: _AppColors.primary,
+              onRefresh: () async => widget.onRefresh(),
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: widget.future,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return ListView(
+                      padding: const EdgeInsets.fromLTRB(20, 18, 20, 118),
+                      children: const [_LoadingPanel()],
+                    );
+                  }
 
-              if (snapshot.hasError) {
-                return ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
-                  children: [
-                    _InfoPanel(
-                      icon: Icons.cloud_off,
-                      title: 'Data belum bisa dimuat',
-                      subtitle: snapshot.error.toString(),
-                    ),
-                  ],
-                );
-              }
+                  if (snapshot.hasError) {
+                    return ListView(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 118),
+                      children: [
+                        _InfoPanel(
+                          icon: Icons.cloud_off_rounded,
+                          title: 'Data belum bisa dimuat',
+                          subtitle: snapshot.error.toString(),
+                        ),
+                      ],
+                    );
+                  }
 
-              final data = snapshot.data ?? <String, dynamic>{};
-              final user = data['user'] as Map<String, dynamic>? ?? {};
-              final status =
-                  data['status_presensi'] as Map<String, dynamic>? ?? {};
-              final presensiJson = data['presensi_hari_ini'];
-              final presensi = presensiJson is Map<String, dynamic>
-                  ? PresensiModel.fromJson(presensiJson)
-                  : null;
-              final rekap =
-                  data['rekap_30_hari'] as Map<String, dynamic>? ?? {};
-              final shift = data['shift'] as Map<String, dynamic>? ?? {};
-              final announcements = (data['pengumuman'] as List<dynamic>? ?? [])
-                  .whereType<Map<String, dynamic>>()
-                  .toList();
-              final activeShift = shift['active'] as Map<String, dynamic>?;
-              final scheduledShift =
-                  shift['scheduled'] as Map<String, dynamic>?;
-              final shiftData = activeShift ?? scheduledShift;
+                  final data = snapshot.data ?? <String, dynamic>{};
+                  final user = data['user'] as Map<String, dynamic>? ?? {};
+                  final status =
+                      data['status_presensi'] as Map<String, dynamic>? ?? {};
+                  final presensiJson = data['presensi_hari_ini'];
+                  final presensi = presensiJson is Map<String, dynamic>
+                      ? PresensiModel.fromJson(presensiJson)
+                      : null;
+                  final rekap =
+                      data['rekap_30_hari'] as Map<String, dynamic>? ?? {};
+                  final shift = data['shift'] as Map<String, dynamic>? ?? {};
+                  final announcements =
+                      (data['pengumuman'] as List<dynamic>? ?? [])
+                          .whereType<Map<String, dynamic>>()
+                          .toList();
+                  final activeShift = shift['active'] as Map<String, dynamic>?;
+                  final scheduledShift =
+                      shift['scheduled'] as Map<String, dynamic>?;
+                  final shiftData = activeShift ?? scheduledShift;
 
-              return ListView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 118),
-                children: [
-                  _Header(
-                    name: user['name'] as String? ?? 'Akun User',
-                    now: _now,
-                    onLogout: widget.onLogout,
-                  ),
-                  const SizedBox(height: 18),
-                  _ShiftNotice(shiftData: shiftData),
-                  const SizedBox(height: 14),
-                  _AttendanceStatusCard(presensi: presensi),
-                  const SizedBox(height: 16),
-                  _FeatureGrid(
-                    onHadir: () {
-                      final canPulang = status['can_pulang'] as bool? ?? false;
-                      widget.onOpenPresensi(canPulang ? 'pulang' : 'masuk');
-                    },
-                    onIzin: () => widget.onOpenMenu(2),
-                    onInfo: () => widget.onOpenMenu(3),
-                    onJadwal: () => _openPage(
-                      ShiftScreen(apiService: widget.apiService),
-                    ),
-                    onSwapShift: () => _openPage(
-                      ShiftSwapScreen(apiService: widget.apiService),
-                    ),
-                    onComingSoon: _showComingSoon,
-                  ),
-                  const SizedBox(height: 16),
-                  _MonthlySummary(rekap: rekap),
-                  const SizedBox(height: 16),
-                  _AnnouncementPreview(
-                    items: announcements,
-                    onViewAll: () => _openPage(
-                      AnnouncementScreen(apiService: widget.apiService),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
+                  return ListView(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 118),
+                    children: [
+                      _Header(
+                        name: user['name'] as String? ?? 'Akun User',
+                        now: _now,
+                        onLogout: widget.onLogout,
+                      ),
+                      const SizedBox(height: 16),
+                      _ShiftNotice(shiftData: shiftData),
+                      const SizedBox(height: 14),
+                      _AttendanceStatusCard(presensi: presensi),
+                      const SizedBox(height: 16),
+                      const _SectionTitle(
+                        title: 'Akses Cepat',
+                        subtitle: 'Pilih kebutuhan presensi kamu',
+                      ),
+                      const SizedBox(height: 10),
+                      _FeatureGrid(
+                        onHadir: () => _openAttendance(user, status),
+                        onIzin: () => widget.onOpenMenu(2),
+                        onInfo: () => widget.onOpenMenu(3),
+                        onJadwal: () => _openPage(
+                          ShiftScreen(apiService: widget.apiService),
+                        ),
+                        onSwapShift: () => _openPage(
+                          ShiftSwapScreen(apiService: widget.apiService),
+                        ),
+                        onComingSoon: _showComingSoon,
+                      ),
+                      const SizedBox(height: 16),
+                      _MonthlySummary(rekap: rekap),
+                      const SizedBox(height: 16),
+                      _AnnouncementPreview(
+                        items: announcements,
+                        onViewAll: () => _openPage(
+                          AnnouncementScreen(apiService: widget.apiService),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -240,9 +269,145 @@ class _DashboardTabState extends State<_DashboardTab> {
     );
   }
 
+  void _openAttendance(
+    Map<String, dynamic> user,
+    Map<String, dynamic> status,
+  ) {
+    final hasFaceEnrollment = user['has_face_enrollment'] as bool? ?? false;
+    final hasApprovedLeave = status['has_approved_leave'] as bool? ?? false;
+    final activeShiftAvailable =
+        status['active_shift_available'] as bool? ?? false;
+    final canMasuk = status['can_masuk'] as bool? ?? false;
+    final canPulang = status['can_pulang'] as bool? ?? false;
+
+    if (!hasFaceEnrollment) {
+      _showMessage(
+        'Wajah belum terdaftar. Selesaikan enrollment melalui web terlebih dulu.',
+      );
+      return;
+    }
+
+    if (hasApprovedLeave) {
+      _showMessage('Kamu memiliki izin yang sudah disetujui hari ini.');
+      return;
+    }
+
+    if (!activeShiftAvailable) {
+      _showMessage('Shift belum aktif atau kamu berada di luar jam presensi.');
+      return;
+    }
+
+    if (canPulang) {
+      widget.onOpenPresensi('pulang');
+      return;
+    }
+
+    if (canMasuk) {
+      widget.onOpenPresensi('masuk');
+      return;
+    }
+
+    _showMessage('Presensi hari ini sudah lengkap.');
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   Future<void> _openPage(Widget page) async {
     await Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
     widget.onRefresh();
+  }
+}
+
+class _DashboardBackground extends StatelessWidget {
+  const _DashboardBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          height: 235,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [_AppColors.primaryDark, _AppColors.primary],
+            ),
+          ),
+        ),
+        const Expanded(child: SizedBox()),
+      ],
+    );
+  }
+}
+
+class _LoadingPanel extends StatelessWidget {
+  const _LoadingPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 220,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: _AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: const CircularProgressIndicator(color: _AppColors.primary),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({
+    required this.title,
+    required this.subtitle,
+  });
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: _AppColors.ink,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  color: _AppColors.muted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -261,84 +426,137 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final time = DateFormat('HH.mm.ss').format(now);
     final date = _formatIndonesianDate(now);
+    final initial = name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFF536878),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  const Text(
-                    'Akun User',
-                    style: TextStyle(
-                      color: Color(0xFF7B8D9A),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Material(
-              color: Colors.white.withOpacity(0.9),
-              borderRadius: BorderRadius.circular(12),
-              child: InkWell(
-                onTap: onLogout,
-                borderRadius: BorderRadius.circular(12),
-                child: const SizedBox(
-                  width: 36,
-                  height: 36,
-                  child: Icon(
-                    Icons.logout_rounded,
-                    color: Color(0xFF536878),
-                    size: 20,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Center(
-          child: Column(
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+      decoration: BoxDecoration(
+        color: _AppColors.surface,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
             children: [
-              Text(
-                time,
-                style: const TextStyle(
-                  color: Color(0xFF087B68),
-                  fontSize: 34,
-                  fontWeight: FontWeight.w900,
-                  height: 1,
+              Container(
+                width: 46,
+                height: 46,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: _AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: _AppColors.line),
+                ),
+                child: Text(
+                  initial,
+                  style: const TextStyle(
+                    color: _AppColors.primary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
-              const SizedBox(height: 5),
-              Text(
-                date,
-                style: const TextStyle(
-                  color: Color(0xFF7B8D9A),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Selamat bertugas',
+                      style: TextStyle(
+                        color: _AppColors.muted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _AppColors.ink,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Material(
+                color: _AppColors.redSoft,
+                borderRadius: BorderRadius.circular(14),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: onLogout,
+                  child: const SizedBox(
+                    width: 42,
+                    height: 42,
+                    child: Icon(
+                      Icons.logout_rounded,
+                      color: _AppColors.red,
+                      size: 20,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-        ),
-      ],
+          const SizedBox(height: 18),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            decoration: BoxDecoration(
+              color: _AppColors.primarySoft,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: _AppColors.line),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  time,
+                  style: const TextStyle(
+                    color: _AppColors.primaryDark,
+                    fontSize: 38,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_rounded,
+                      color: _AppColors.primary,
+                      size: 15,
+                    ),
+                    const SizedBox(width: 7),
+                    Flexible(
+                      child: Text(
+                        date,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: _AppColors.muted,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -379,25 +597,61 @@ class _ShiftNotice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasShift = shiftData != null;
+    final title = hasShift ? 'Shift Hari Ini' : 'Belum Ada Shift';
     final text = hasShift
         ? 'Shift hari ini ${shiftData!['jam_masuk'] ?? '-'} - ${shiftData!['jam_pulang'] ?? '-'}.'
         : 'Shift kamu belum diatur oleh admin untuk hari ini. Absen hanya bisa dilakukan setelah ada jadwal shift.';
+    final icon =
+        hasShift ? Icons.schedule_rounded : Icons.warning_amber_rounded;
+    final tint = hasShift ? _AppColors.blue : _AppColors.warning;
+    final soft = hasShift ? _AppColors.blueSoft : _AppColors.warningSoft;
 
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFBEA),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFF2CB55)),
+        color: soft,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: tint.withValues(alpha: 0.18)),
       ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Color(0xFF9B6331),
-          fontSize: 13,
-          height: 1.35,
-          fontWeight: FontWeight.w700,
-        ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.75),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: tint, size: 21),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: tint,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  text,
+                  style: const TextStyle(
+                    color: _AppColors.ink,
+                    fontSize: 12,
+                    height: 1.35,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -410,10 +664,23 @@ class _AttendanceStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasMasuk = (presensi?.jamMasuk ?? '').isNotEmpty;
+    final hasPulang = (presensi?.jamKeluar ?? '').isNotEmpty;
+    final statusText = hasPulang
+        ? 'Selesai'
+        : hasMasuk
+            ? 'Sedang Bertugas'
+            : 'Belum Presensi';
+    final statusColor = hasPulang
+        ? _AppColors.blue
+        : hasMasuk
+            ? _AppColors.primary
+            : _AppColors.warning;
+
     return Container(
-      height: 68,
+      padding: const EdgeInsets.fromLTRB(15, 14, 15, 15),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.92),
+        color: Colors.white.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -452,43 +719,48 @@ class _AttendanceStatusItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 13),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _AppColors.background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _AppColors.line),
+      ),
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              color: const Color(0xFFE8FAF4),
-              borderRadius: BorderRadius.circular(12),
+              color: _AppColors.primarySoft,
+              borderRadius: BorderRadius.circular(11),
             ),
-            child: Icon(icon, color: const Color(0xFF07896F), size: 19),
+            child: Icon(icon, color: _AppColors.primary, size: 18),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: Color(0xFF8290A3),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Color(0xFF30445C),
-                    fontSize: 13,
+                    color: _AppColors.muted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _AppColors.ink,
+                    fontSize: 15,
                     fontWeight: FontWeight.w900,
-                    height: 1.08,
                   ),
                 ),
               ],
@@ -519,55 +791,77 @@ class _FeatureGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 4,
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      childAspectRatio: 0.86,
-      children: [
-        _FeatureTile(
-          icon: Icons.how_to_reg_rounded,
-          label: 'Hadir',
-          onTap: onHadir,
-        ),
-        _FeatureTile(
-          icon: Icons.health_and_safety_rounded,
-          label: 'Sakit',
-          onTap: onIzin,
-        ),
-        _FeatureTile(
-          icon: Icons.assignment_turned_in_rounded,
-          label: 'Izin',
-          onTap: onIzin,
-        ),
-        _FeatureTile(
-          icon: Icons.flight_takeoff_rounded,
-          label: 'Cuti',
-          onTap: onIzin,
-        ),
-        _FeatureTile(
-          icon: Icons.badge_rounded,
-          label: 'ID Card',
-          onTap: onInfo,
-        ),
-        _FeatureTile(
-          icon: Icons.access_time_filled_rounded,
-          label: 'Lembur',
-          onTap: () => onComingSoon('Lembur'),
-        ),
-        _FeatureTile(
-          icon: Icons.calendar_month_rounded,
-          label: 'Jadwal',
-          onTap: onJadwal,
-        ),
-        _FeatureTile(
-          icon: Icons.swap_horiz_rounded,
-          label: 'Swap Shift',
-          onTap: onSwapShift,
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth < 340 ? 3 : 4;
+
+        return GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: crossAxisCount,
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          childAspectRatio: crossAxisCount == 3 ? 1 : 0.88,
+          children: [
+            _FeatureTile(
+              icon: Icons.how_to_reg_rounded,
+              label: 'Hadir',
+              accent: _AppColors.primary,
+              soft: _AppColors.primarySoft,
+              onTap: onHadir,
+            ),
+            _FeatureTile(
+              icon: Icons.health_and_safety_rounded,
+              label: 'Sakit',
+              accent: _AppColors.red,
+              soft: _AppColors.redSoft,
+              onTap: onIzin,
+            ),
+            _FeatureTile(
+              icon: Icons.assignment_turned_in_rounded,
+              label: 'Izin',
+              accent: _AppColors.blue,
+              soft: _AppColors.blueSoft,
+              onTap: onIzin,
+            ),
+            _FeatureTile(
+              icon: Icons.flight_takeoff_rounded,
+              label: 'Cuti',
+              accent: _AppColors.warning,
+              soft: _AppColors.warningSoft,
+              onTap: onIzin,
+            ),
+            _FeatureTile(
+              icon: Icons.badge_rounded,
+              label: 'ID Card',
+              accent: const Color(0xFF5965D8),
+              soft: const Color(0xFFEDEEFF),
+              onTap: onInfo,
+            ),
+            _FeatureTile(
+              icon: Icons.access_time_filled_rounded,
+              label: 'Lembur',
+              accent: const Color(0xFF59697A),
+              soft: const Color(0xFFE9ECF3),
+              onTap: () => onComingSoon('Lembur'),
+            ),
+            _FeatureTile(
+              icon: Icons.calendar_month_rounded,
+              label: 'Jadwal',
+              accent: const Color(0xFF0E7490),
+              soft: const Color(0xFFE2F6FB),
+              onTap: onJadwal,
+            ),
+            _FeatureTile(
+              icon: Icons.swap_horiz_rounded,
+              label: 'Swap Shift',
+              accent: const Color(0xFF8B5CF6),
+              soft: const Color(0xFFF0EAFF),
+              onTap: onSwapShift,
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -576,42 +870,51 @@ class _FeatureTile extends StatelessWidget {
   const _FeatureTile({
     required this.icon,
     required this.label,
+    required this.accent,
+    required this.soft,
     required this.onTap,
   });
 
   final IconData icon;
   final String label;
+  final Color accent;
+  final Color soft;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withOpacity(0.92),
+      color: Colors.white.withValues(alpha: 0.92),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(18),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 37,
-              height: 37,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
-                color: const Color(0xFFE9FBF4),
-                borderRadius: BorderRadius.circular(12),
+                color: soft,
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(icon, color: const Color(0xFF07896F), size: 21),
+              child: Icon(icon, color: accent, size: 22),
             ),
-            const SizedBox(height: 10),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFF536878),
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
+            const SizedBox(height: 9),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Text(
+                label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: _AppColors.ink,
+                  fontSize: 11,
+                  height: 1.1,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ),
           ],
@@ -633,9 +936,9 @@ class _AnnouncementPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.92),
+        color: Colors.white.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -650,8 +953,8 @@ class _AnnouncementPreview extends StatelessWidget {
                     Text(
                       'Pengumuman Aktif',
                       style: TextStyle(
-                        color: Color(0xFF536878),
-                        fontSize: 13,
+                        color: _AppColors.ink,
+                        fontSize: 14,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -659,8 +962,8 @@ class _AnnouncementPreview extends StatelessWidget {
                     Text(
                       'Info terbaru untuk user',
                       style: TextStyle(
-                        color: Color(0xFF8A98A8),
-                        fontSize: 11,
+                        color: _AppColors.muted,
+                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -668,12 +971,17 @@ class _AnnouncementPreview extends StatelessWidget {
                 ),
               ),
               TextButton(
-                  onPressed: onViewAll, child: const Text('Lihat semua')),
+                onPressed: onViewAll,
+                child: const Text('Lihat'),
+              ),
             ],
           ),
           const SizedBox(height: 10),
           if (items.isEmpty)
-            const Text('Belum ada pengumuman aktif.')
+            const _EmptyLine(
+              icon: Icons.campaign_outlined,
+              text: 'Belum ada pengumuman aktif.',
+            )
           else
             ...items.take(3).map(
                   (item) => Container(
@@ -681,21 +989,31 @@ class _AnnouncementPreview extends StatelessWidget {
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF6FAFA),
-                      borderRadius: BorderRadius.circular(12),
+                      color: _AppColors.background,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: _AppColors.line),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           item['judul'] as String? ?? '-',
-                          style: const TextStyle(fontWeight: FontWeight.w800),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: _AppColors.ink,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           item['isi'] as String? ?? '-',
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: _AppColors.muted,
+                            height: 1.35,
+                          ),
                         ),
                       ],
                     ),
@@ -714,10 +1032,18 @@ class _MonthlySummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hadir = _asInt(rekap['hadir']);
+    final izin = _asInt(rekap['izin']) + _asInt(rekap['sakit']);
+    final terlambat = _asInt(rekap['terlambat']);
+    final total = _asInt(rekap['total']);
+    final belumAbsen = total > 0
+        ? (total - hadir - izin).clamp(0, total).toInt()
+        : _asInt(rekap['belum_absen']);
+
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.92),
+        color: Colors.white.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -726,8 +1052,8 @@ class _MonthlySummary extends StatelessWidget {
           const Text(
             '30 Hari terakhir',
             style: TextStyle(
-              color: Color(0xFF536878),
-              fontSize: 13,
+              color: _AppColors.ink,
+              fontSize: 14,
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -735,8 +1061,8 @@ class _MonthlySummary extends StatelessWidget {
           const Text(
             'Ringkasan absensi',
             style: TextStyle(
-              color: Color(0xFF8A98A8),
-              fontSize: 11,
+              color: _AppColors.muted,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -745,26 +1071,35 @@ class _MonthlySummary extends StatelessWidget {
             children: [
               _SummaryPill(
                 label: 'Hadir',
-                value: rekap['hadir'],
-                color: const Color(0xFFBFEFDF),
+                value: hadir,
+                color: _AppColors.primarySoft,
+                textColor: _AppColors.primary,
               ),
               const SizedBox(width: 8),
               _SummaryPill(
                 label: 'Sakit/Izin',
-                value: (rekap['izin'] as int? ?? 0),
-                color: const Color(0xFFF4E4B1),
+                value: izin,
+                color: _AppColors.warningSoft,
+                textColor: _AppColors.warning,
               ),
               const SizedBox(width: 8),
               _SummaryPill(
-                label: 'Belum Absen',
-                value: rekap['total'] == null ? 0 : null,
-                color: const Color(0xFFE9ECF3),
+                label: terlambat > 0 ? 'Terlambat' : 'Belum',
+                value: terlambat > 0 ? terlambat : belumAbsen,
+                color: terlambat > 0 ? _AppColors.redSoft : _AppColors.blueSoft,
+                textColor: terlambat > 0 ? _AppColors.red : _AppColors.blue,
               ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  int _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 }
 
@@ -773,30 +1108,49 @@ class _SummaryPill extends StatelessWidget {
     required this.label,
     required this.value,
     required this.color,
+    required this.textColor,
   });
 
   final String label;
-  final dynamic value;
+  final int value;
   final Color color;
+  final Color textColor;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        height: 34,
+        height: 56,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
         ),
-        child: Text(
-          value == null ? label : '$label ${value ?? 0}',
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Color(0xFF59697A),
-            fontSize: 10,
-            fontWeight: FontWeight.w900,
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              value.toString(),
+              style: TextStyle(
+                color: textColor,
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+                height: 1,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: textColor.withValues(alpha: 0.78),
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -819,14 +1173,14 @@ class _MockBottomNav extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Container(
-        height: 78,
+        height: 82,
         margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.12),
+              color: Colors.black.withValues(alpha: 0.12),
               blurRadius: 18,
               offset: const Offset(0, -4),
             ),
@@ -872,9 +1226,9 @@ class _MockBottomNav extends StatelessWidget {
             Positioned(
               top: -22,
               child: Material(
-                color: const Color(0xFF07896F),
+                color: _AppColors.primary,
                 shape: const CircleBorder(),
-                elevation: 7,
+                elevation: 8,
                 child: InkWell(
                   customBorder: const CircleBorder(),
                   onTap: onCenterTap,
@@ -916,17 +1270,24 @@ class _BottomItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? const Color(0xFF07896F) : const Color(0xFF9AA4B2);
+    final color = selected ? _AppColors.primary : const Color(0xFF9AA4B2);
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: SizedBox(
+      borderRadius: BorderRadius.circular(16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
         width: 58,
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? _AppColors.primarySoft : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 22),
+            Icon(icon, color: color, size: selected ? 23 : 22),
             const SizedBox(height: 4),
             Text(
               label,
@@ -959,16 +1320,66 @@ class _InfoPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        color: _AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _AppColors.line),
       ),
       child: Column(
         children: [
-          Icon(icon, size: 42, color: const Color(0xFF07896F)),
+          Icon(icon, size: 42, color: _AppColors.primary),
           const SizedBox(height: 12),
-          Text(title, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: _AppColors.ink,
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
           const SizedBox(height: 6),
-          Text(subtitle, textAlign: TextAlign.center),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: _AppColors.muted),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyLine extends StatelessWidget {
+  const _EmptyLine({
+    required this.icon,
+    required this.text,
+  });
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      decoration: BoxDecoration(
+        color: _AppColors.background,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _AppColors.line),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: _AppColors.muted, size: 18),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: _AppColors.muted,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
         ],
       ),
     );

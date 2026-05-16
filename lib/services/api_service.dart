@@ -71,17 +71,50 @@ class ApiService {
   }
 
   Map<String, dynamic> _decode(http.Response response) {
-    final decoded = response.body.isEmpty
-        ? <String, dynamic>{}
-        : jsonDecode(response.body) as Map<String, dynamic>;
+    final decoded = _decodeBody(response.body);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw ApiException(
-        decoded['message'] as String? ?? 'Terjadi kesalahan.',
+        _errorMessage(decoded),
         statusCode: response.statusCode,
       );
     }
 
     return decoded;
+  }
+
+  Map<String, dynamic> _decodeBody(String body) {
+    if (body.isEmpty) {
+      return <String, dynamic>{};
+    }
+
+    final decoded = jsonDecode(body);
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    }
+
+    return {'data': decoded};
+  }
+
+  String _errorMessage(Map<String, dynamic> decoded) {
+    final message = decoded['message'];
+    if (message is String && message.isNotEmpty) {
+      return message;
+    }
+
+    final errors = decoded['errors'];
+    if (errors is Map<String, dynamic>) {
+      final messages = errors.values
+          .whereType<List<dynamic>>()
+          .expand((items) => items)
+          .whereType<String>()
+          .toList();
+
+      if (messages.isNotEmpty) {
+        return messages.first;
+      }
+    }
+
+    return 'Terjadi kesalahan.';
   }
 }

@@ -30,6 +30,20 @@ class AuthService {
     return UserModel.fromJson(response['data'] as Map<String, dynamic>);
   }
 
+  Future<Map<String, dynamic>> enrollFace({
+    required List<String> images,
+    required bool blinkVerified,
+  }) {
+    return _api.post(
+      '/user/face-enrollment',
+      body: {
+        'images': images,
+        'face_detected': true,
+        'blink_verified': blinkVerified,
+      },
+    );
+  }
+
   Future<bool> isLoggedIn() async {
     final token = await _api.getToken();
     return token != null && token.isNotEmpty;
