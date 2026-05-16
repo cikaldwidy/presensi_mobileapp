@@ -204,7 +204,7 @@ class _FaceCameraScreenState extends State<FaceCameraScreen> {
                                 vertical: 10,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.45),
+                                color: Colors.black.withOpacity(0.45),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Text(

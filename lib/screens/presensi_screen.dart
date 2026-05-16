@@ -288,7 +288,7 @@ class _VerificationCameraCard extends StatelessWidget {
       color: const Color(0xFF060C1A),
       borderRadius: BorderRadius.circular(11),
       elevation: 5,
-      shadowColor: Colors.black.withValues(alpha: 0.28),
+      shadowColor: Colors.black.withOpacity(0.28),
       child: InkWell(
         onTap: isCapturing ? null : onTap,
         borderRadius: BorderRadius.circular(11),
@@ -353,7 +353,7 @@ class _VerificationCameraCard extends StatelessWidget {
                   height: 30,
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.68),
+                    color: Colors.black.withOpacity(0.68),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
@@ -400,7 +400,7 @@ class _FloatingLabel extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
+            color: Colors.black.withOpacity(0.12),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -432,7 +432,7 @@ class _MapPreview extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.22),
+            color: Colors.black.withOpacity(0.22),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -450,7 +450,7 @@ class _MapPreview extends StatelessWidget {
                 width: 92,
                 height: 92,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF48B797).withValues(alpha: 0.24),
+                  color: const Color(0xFF48B797).withOpacity(0.24),
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: const Color(0xFF237E6C),
@@ -482,7 +482,7 @@ class _MapPreview extends StatelessWidget {
               right: 6,
               bottom: 2,
               child: Container(
-                color: Colors.white.withValues(alpha: 0.76),
+                color: Colors.white.withOpacity(0.76),
                 padding: const EdgeInsets.symmetric(horizontal: 3),
                 child: const Text(
                   'Leaflet | (c) OpenStreetMap',
@@ -598,7 +598,7 @@ class _StatusTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(9),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF045C4D).withValues(alpha: 0.2),
+            color: const Color(0xFF045C4D).withOpacity(0.2),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -686,7 +686,7 @@ class _MessagePanel extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.94),
+        color: Colors.white.withOpacity(0.94),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
@@ -798,7 +798,7 @@ class _MapPainter extends CustomPainter {
     );
 
     final roadPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.9)
+      ..color = Colors.white.withOpacity(0.9)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10
       ..strokeCap = StrokeCap.round;

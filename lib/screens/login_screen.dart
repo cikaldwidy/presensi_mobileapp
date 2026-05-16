@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/api_config.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_button.dart';
@@ -48,7 +49,9 @@ class _LoginScreenState extends State<LoginScreen> {
     } on ApiException catch (error) {
       _showMessage(error.message);
     } catch (_) {
-      _showMessage('Tidak bisa terhubung ke server. Periksa baseUrl API.');
+      _showMessage(
+        'Tidak bisa terhubung ke server. baseUrl aktif: ${ApiConfig.baseUrl}',
+      );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

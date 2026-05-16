@@ -129,7 +129,7 @@ class _IzinScreenState extends State<IzinScreen> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    initialValue: _jenisIzin,
+                    value: _jenisIzin,
                     decoration: InputDecoration(
                       labelText: 'Jenis izin',
                       border: OutlineInputBorder(
@@ -253,8 +253,8 @@ class _LeaveRequestCard extends StatelessWidget {
                 ),
                 Chip(
                   label: Text(status),
-                  backgroundColor: color.withValues(alpha: 0.12),
-                  side: BorderSide(color: color.withValues(alpha: 0.3)),
+                  backgroundColor: color.withOpacity(0.12),
+                  side: BorderSide(color: color.withOpacity(0.3)),
                 ),
               ],
             ),

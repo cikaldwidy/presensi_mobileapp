@@ -295,7 +295,7 @@ class _Header extends StatelessWidget {
               ),
             ),
             Material(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: Colors.white.withOpacity(0.9),
               borderRadius: BorderRadius.circular(12),
               child: InkWell(
                 onTap: onLogout,
@@ -413,7 +413,7 @@ class _AttendanceStatusCard extends StatelessWidget {
     return Container(
       height: 68,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
+        color: Colors.white.withOpacity(0.92),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -586,7 +586,7 @@ class _FeatureTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.92),
+      color: Colors.white.withOpacity(0.92),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
@@ -635,7 +635,7 @@ class _AnnouncementPreview extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
+        color: Colors.white.withOpacity(0.92),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -717,7 +717,7 @@ class _MonthlySummary extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
+        color: Colors.white.withOpacity(0.92),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -826,7 +826,7 @@ class _MockBottomNav extends StatelessWidget {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
+              color: Colors.black.withOpacity(0.12),
               blurRadius: 18,
               offset: const Offset(0, -4),
             ),
